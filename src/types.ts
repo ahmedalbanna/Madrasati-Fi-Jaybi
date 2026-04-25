@@ -24,9 +24,16 @@ export interface MicroLesson {
   teacherVoicePrompt: string;
   image?: string;
   quiz?: Quiz;
+  adaptiveContent?: {
+    content: string;
+    quiz: Quiz;
+  };
+  spokenQuizPrompt?: string;
 }
 
 export interface UserProgress {
   completedLessons: string[];
   totalPoints: number;
+  quizScores: Record<string, number>;
+  badges: string[];
 }

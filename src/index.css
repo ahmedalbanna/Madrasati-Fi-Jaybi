@@ -1,43 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #8b4513; /* Clay/Earth */
-  --color-brand-secondary: #d2691e; /* Ochre */
-  --color-brand-accent: #2e8b57; /* Sea Green */
-  --color-brand-bg: #fffaf0; /* Warm Paper */
+  --color-brand-primary: #D45D3B; /* Orange/Clay */
+  --color-brand-secondary: #2D2424; /* Dark/Black */
+  --color-brand-accent: #3B82D4; /* Blue */
+  --color-brand-bg: #FAF7F2; /* Warm Paper */
   
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-brand-bg text-gray-900 antialiased selection:bg-brand-secondary selection:text-white overflow-x-hidden;
+    @apply bg-brand-bg text-brand-secondary antialiased overflow-x-hidden;
     font-family: 'Inter', sans-serif;
   }
 }
 
+/* Base styles to match the bold typography and thick borders */
 .lesson-card {
-  @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4 transition-all hover:shadow-md active:scale-95;
+  @apply bg-white rounded-3xl p-6 border border-[#E5E0D5] flex items-center gap-4 transition-all hover:shadow-lg active:scale-95;
 }
 
 .nav-item {
-  @apply flex flex-col items-center justify-center gap-1 text-gray-500 transition-colors;
+  @apply flex flex-col items-center justify-center gap-1 text-[#8C8376] transition-colors relative;
 }
 
 .nav-item.active {
-  @apply text-brand-secondary;
+  @apply text-brand-primary;
+}
+
+.nav-item.active::after {
+  content: '';
+  @apply absolute -bottom-4 w-1 h-1 bg-brand-primary rounded-full;
 }
 
 .quiz-option {
-  @apply w-full p-4 text-right rounded-xl border-2 border-gray-200 transition-all hover:border-brand-secondary active:bg-brand-bg;
+  @apply w-full p-4 text-center rounded-2xl border-2 border-[#E5E0D5] text-lg font-bold transition-all hover:border-brand-primary active:bg-[#F0EBE3] cursor-pointer bg-white;
 }
 
 .quiz-option.correct {
-  @apply border-green-500 bg-green-50;
+  @apply border-green-500 bg-green-50 text-green-700;
 }
 
 .quiz-option.wrong {
-  @apply border-red-500 bg-red-50;
+  @apply border-red-500 bg-red-50 text-red-700;
 }
 
 /* RTL Support */

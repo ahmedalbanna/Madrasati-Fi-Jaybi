@@ -18,6 +18,19 @@ export const LESSONS: MicroLesson[] = [
       ],
       feedbackSuccess: 'ممتاز! أنت شطور فعلاً.',
       feedbackFailure: 'حاول مرة أخرى، أنت تستطيع فعلها!'
+    },
+    adaptiveContent: {
+      content: 'يبدو أن الأمور بحاجة لتوضيح أكثر. دعنا نعد أصابع اليد الواحدة معاً: 1، 2، 3! الآن، لكل إصبع خروف. كم خروف لدينا إذن؟',
+      quiz: {
+        question: 'بعد عد الأصابع.. كم خروف لدينا؟',
+        options: [
+          { id: 'a', text: 'اثنان', isCorrect: false },
+          { id: 'b', text: 'خمسة', isCorrect: false },
+          { id: 'c', text: 'ثلاثة', isCorrect: true }
+        ],
+        feedbackSuccess: 'رائع جداً! الإصبع الواحد لخروف واحد.',
+        feedbackFailure: 'لا عليك، سنتعلم معاً بالتكرار.'
+      }
     }
   },
   {
@@ -37,7 +50,8 @@ export const LESSONS: MicroLesson[] = [
       ],
       feedbackSuccess: 'رائع يا بطل!',
       feedbackFailure: 'انظر جيداً للأحرف، حاول مرة أخرى.'
-    }
+    },
+    spokenQuizPrompt: "اقرأ الآية الأولى من سورة الإخلاص بصوتك وسنستمع إليك."
   },
   {
     id: 'sci-1',
