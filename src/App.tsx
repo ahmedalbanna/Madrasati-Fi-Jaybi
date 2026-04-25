@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Home, BookOpen, Music, User, ArrowRight, Play, CheckCircle2, ChevronRight, Volume2, Share2, Mic, Settings, Trophy, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence, useAnimation } from 'motion/react';
+import { Home, BookOpen, Music, User, ArrowRight, Play, CheckCircle2, ChevronRight, Volume2, Share2, Mic, Settings, Trophy, AlertCircle, WifiOff, Star, Trash2, Download } from 'lucide-react';
 import { LESSONS } from './data/curriculum';
 import { MicroLesson, UserProgress, LessonType, Quiz } from './types';
 import { playAudioBeep } from './lib/audio';
@@ -32,47 +32,99 @@ const TeacherAvatar = ({ text }: { text: string }) => (
 interface LessonCardProps {
   lesson: MicroLesson;
   isCompleted: boolean;
+  isFavorited: boolean;
   onClick: () => void;
   onShare: (e: React.MouseEvent) => void;
+  onFavorite: (e: React.MouseEvent) => void;
+  onDelete: () => void;
 }
 
-const LessonCard: React.FC<LessonCardProps> = ({ lesson, isCompleted, onClick, onShare }) => (
-  <motion.div 
-    whileTap={{ scale: 0.98 }}
-    onClick={onClick}
-    className="lesson-card cursor-pointer group"
-  >
-    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0
-      ${lesson.type === 'math' ? 'bg-[#FDF2F0] text-brand-primary' : 
-        lesson.type === 'reading' ? 'bg-[#F0F7FD] text-[#3B82D4]' : 'bg-[#F4FDF0] text-[#4AD43B]'}`}>
-      {lesson.image}
-    </div>
-    <div className="flex-1 min-w-0">
-      <h3 className="font-black text-xl truncate">{lesson.title}</h3>
-      <p className="text-sm text-[#8C8376] truncate font-medium mt-1">{lesson.description}</p>
-    </div>
-    <div className="flex flex-col items-center gap-2">
-      {isCompleted ? (
-        <CheckCircle2 className="text-green-500" size={28} />
-      ) : (
-        <ChevronRight className="text-[#E5E0D5]" size={28} />
-      )}
-      <button 
-        onClick={(e) => onShare(e)}
-        className="w-8 h-8 rounded-full bg-[#FAF7F2] flex items-center justify-center text-[#8C8376] hover:bg-brand-primary hover:text-white transition-colors"
+const LessonCard: React.FC<LessonCardProps> = ({ lesson, isCompleted, isFavorited, onClick, onShare, onFavorite, onDelete }) => {
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const dragConstraintsRef = React.useRef(null);
+
+  if (isDeleting) return null;
+
+  return (
+    <div className="relative mb-2 w-full" ref={dragConstraintsRef}>
+      {/* Background for Swipe to Delete */}
+      <div className="absolute inset-0 bg-red-500 rounded-3xl flex items-center justify-end px-6 border border-red-600">
+        <Trash2 className="text-white" size={24} />
+      </div>
+      
+      {/* Draggable Card */}
+      <motion.div 
+        drag="x"
+        dragDirectionLock
+        dragConstraints={{ left: -80, right: 0 }}
+        dragSnapToOrigin={false}
+        onDragEnd={(e, info) => {
+          if (info.offset.x < -40) {
+            if (window.confirm("هل تريد إخفاء هذا الدرس؟")) {
+              setIsDeleting(true);
+              setTimeout(() => onDelete(), 300);
+            }
+          }
+        }}
+        whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        className="lesson-card cursor-pointer group relative z-10 w-full"
       >
-        <Share2 size={14} />
-      </button>
+        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0
+          ${lesson.type === 'math' ? 'bg-[#FDF2F0] text-brand-primary' : 
+            lesson.type === 'reading' ? 'bg-[#F0F7FD] text-[#3B82D4]' : 'bg-[#F4FDF0] text-[#4AD43B]'}`}>
+          {lesson.image}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-black text-xl truncate pr-2 flex items-center gap-2">
+            {lesson.title}
+          </h3>
+          <p className="text-sm text-[#8C8376] truncate font-medium mt-1">{lesson.description}</p>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          {isCompleted ? (
+            <CheckCircle2 className="text-green-500 mb-1" size={24} />
+          ) : (
+            <ChevronRight className="text-[#E5E0D5] mb-1" size={24} />
+          )}
+          <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={(e) => onFavorite(e)}
+              className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                isFavorited ? 'bg-yellow-100 text-yellow-600' : 'bg-[#FAF7F2] text-[#8C8376] hover:bg-yellow-50 hover:text-yellow-500'
+              }`}
+            >
+              <Star size={14} fill={isFavorited ? "currentColor" : "none"} />
+            </button>
+            <button 
+              onClick={(e) => onShare(e)}
+              className="w-7 h-7 rounded-full bg-[#FAF7F2] flex items-center justify-center text-[#8C8376] hover:bg-brand-primary hover:text-white transition-colors"
+            >
+              <Share2 size={14} />
+            </button>
+          </div>
+        </div>
+      </motion.div>
     </div>
-  </motion.div>
-);
+  );
+};
 
 const QuizComponent = ({ quiz, onComplete, onFail }: { quiz: NonNullable<MicroLesson['quiz']>, onComplete: (success: boolean) => void, onFail?: () => void }) => {
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [status, setStatus] = React.useState<'idle' | 'correct' | 'wrong'>('idle');
+  const [showExplanation, setShowExplanation] = React.useState(false);
 
   const handleSelect = (optionId: string, isCorrect: boolean) => {
-    if (status !== 'idle') return;
+    if (status !== 'idle' && !showExplanation) return;
+    if (showExplanation) {
+      // Reset if trying again
+      setShowExplanation(false);
+      setStatus('idle');
+      setSelectedId(null);
+      return;
+    }
+    
     setSelectedId(optionId);
     if (isCorrect) {
       setStatus('correct');
@@ -81,27 +133,36 @@ const QuizComponent = ({ quiz, onComplete, onFail }: { quiz: NonNullable<MicroLe
     } else {
       setStatus('wrong');
       playAudioBeep('wrong');
+      setShowExplanation(true);
       if (onFail) onFail();
-      setTimeout(() => {
-        setStatus('idle');
-        setSelectedId(null);
-      }, 1500);
     }
   };
+
+  const selectedOption = quiz.options.find(o => o.id === selectedId);
 
   return (
     <div className="space-y-6 mt-8">
       <h3 className="text-2xl font-black text-center text-brand-secondary tracking-tight">{quiz.question}</h3>
       <div className="grid gap-4">
-        {quiz.options.map((opt) => (
-          <button
-            key={opt.id}
-            onClick={() => handleSelect(opt.id, opt.isCorrect)}
-            className={`quiz-option ${selectedId === opt.id ? (status === 'correct' ? 'correct' : 'wrong') : ''}`}
-          >
-            {opt.text}
-          </button>
-        ))}
+        {quiz.options.map((opt) => {
+          let extraClasses = '';
+          if (status !== 'idle') {
+             if (opt.isCorrect && showExplanation) extraClasses = 'border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200'; // Highlight correct
+             else if (selectedId === opt.id) extraClasses = status === 'correct' ? 'correct' : 'wrong';
+             else extraClasses = 'opacity-50'; // Dim others
+          }
+
+          return (
+            <button
+              key={opt.id}
+              onClick={() => handleSelect(opt.id, opt.isCorrect)}
+              className={`quiz-option ${extraClasses}`}
+              disabled={status === 'correct'}
+            >
+              {opt.text}
+            </button>
+          );
+        })}
       </div>
       <AnimatePresence>
         {status !== 'idle' && (
@@ -109,9 +170,21 @@ const QuizComponent = ({ quiz, onComplete, onFail }: { quiz: NonNullable<MicroLe
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className={`p-4 rounded-2xl text-center font-bold text-lg border-2 ${status === 'correct' ? 'bg-green-100/50 text-green-700 border-green-200' : 'bg-red-100/50 text-red-700 border-red-200'}`}
+            className={`p-5 rounded-2xl text-center font-bold text-lg border-2 ${status === 'correct' ? 'bg-green-100/50 text-green-700 border-green-200' : 'bg-red-100/50 text-red-700 border-red-200 flex flex-col gap-3'}`}
           >
-            {status === 'correct' ? quiz.feedbackSuccess : quiz.feedbackFailure}
+            {status === 'correct' ? quiz.feedbackSuccess : (
+               <>
+                 <span>{quiz.feedbackFailure}</span>
+                 {showExplanation && selectedOption?.explanation && (
+                   <span className="text-sm font-medium opacity-90 border-t border-red-200 pt-2 block mt-1">
+                     {selectedOption.explanation}
+                   </span>
+                 )}
+                 {showExplanation && (
+                   <button onClick={() => { setShowExplanation(false); setStatus('idle'); setSelectedId(null); }} className="mx-auto mt-2 bg-white text-red-700 px-4 py-2 rounded-xl text-sm border border-red-200 shadow-sm active:scale-95">المحاولة مرة أخرى</button>
+                 )}
+               </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -126,7 +199,7 @@ export default function App() {
   const [currentLesson, setCurrentLesson] = React.useState<MicroLesson | null>(null);
   const [progress, setProgress] = React.useState<UserProgress>(() => {
     const saved = localStorage.getItem('madrasati_progress');
-    return saved ? JSON.parse(saved) : { completedLessons: [], totalPoints: 0, quizScores: {}, badges: ['مبتدئ المعرفة'] };
+    return saved ? JSON.parse(saved) : { completedLessons: [], totalPoints: 0, quizScores: {}, badges: ['مبتدئ المعرفة'], favoritedLessons: [], hiddenLessons: [] };
   });
 
   const [lessonProgressPercent, setLessonProgressPercent] = React.useState(0);
@@ -135,6 +208,7 @@ export default function App() {
   const [isStoryPlaying, setIsStoryPlaying] = React.useState(false);
   const [isSharing, setIsSharing] = React.useState(false);
   const [shareMsg, setShareMsg] = React.useState('');
+  const [hasBluetoothUpdate, setHasBluetoothUpdate] = React.useState(true); // Mock update available
 
   React.useEffect(() => {
     localStorage.setItem('madrasati_progress', JSON.stringify(progress));
@@ -205,7 +279,7 @@ export default function App() {
     }
   };
 
-  const currentTabLessons = LESSONS.filter(l => view === 'home' ? l.type !== 'story' : l.type === 'story');
+  const currentTabLessons = LESSONS.filter(l => view === 'home' ? l.type !== 'story' : l.type === 'story').filter(l => !progress.hiddenLessons?.includes(l.id));
 
   const showAdaptiveMath = currentLesson?.type === 'math' && mathFailCount >= 2 && currentLesson.adaptiveContent;
 
@@ -239,13 +313,48 @@ export default function App() {
       <header className="p-6 flex justify-between items-center bg-[#F0EBE3] sticky top-0 z-10 border-b-2 border-[#E5E0D5]">
         <div>
           <h1 className="text-2xl font-black text-brand-secondary tracking-tight">مدرستي <span className="text-brand-primary">في جيبي</span></h1>
-          <p className="text-[10px] text-[#8C8376] font-black tracking-[0.2em] uppercase">بدون إنترنت</p>
+          <div className="flex items-center gap-2 mt-1">
+            <WifiOff size={14} className="text-[#8C8376]" />
+            <span className="text-[10px] text-[#8C8376] font-black tracking-[0.2em] uppercase">بدون إنترنت</span>
+          </div>
         </div>
         <div className="bg-white border-2 border-[#E5E0D5] px-4 py-2 rounded-full flex items-center gap-2 shadow-sm">
           <Trophy size={16} className="text-brand-primary" />
           <span className="text-brand-secondary font-black text-sm">{progress.totalPoints}</span>
         </div>
       </header>
+
+      {/* Bluetooth Update Banner */}
+      <AnimatePresence>
+         {hasBluetoothUpdate && view === 'home' && !currentLesson && (
+            <motion.div 
+               initial={{ height: 0, opacity: 0 }}
+               animate={{ height: 'auto', opacity: 1 }}
+               exit={{ height: 0, opacity: 0 }}
+               className="bg-[#EBF5FF] border-b border-[#3B82D4]/20 px-6 py-4 flex items-center justify-between"
+            >
+               <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-[#3B82D4]">
+                     <Download size={20} />
+                  </div>
+                  <div>
+                     <h4 className="font-bold text-sm text-[#3B82D4]">حزمة دروس جديدة متوفرة!</h4>
+                     <p className="text-xs text-[#3B82D4]/80">حجم الحزمة ٥ ميغابايت - عبر البلوتوث</p>
+                  </div>
+               </div>
+               <button 
+                  onClick={() => {
+                     alert("جاري الاتصال بنقطة البلوتوث المحيطة وتثبيت الحزمة المجانية...");
+                     setHasBluetoothUpdate(false);
+                     setProgress(p => ({ ...p, badges: [...p.badges, 'ناشر العلم'] }));
+                  }}
+                  className="bg-[#3B82D4] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3B82D4]/90"
+               >
+                  تثبيت
+               </button>
+            </motion.div>
+         )}
+      </AnimatePresence>
 
       <main className="p-6">
         <AnimatePresence mode="wait">
@@ -266,8 +375,25 @@ export default function App() {
                     key={lesson.id} 
                     lesson={lesson} 
                     isCompleted={progress.completedLessons.includes(lesson.id)}
+                    isFavorited={progress.favoritedLessons?.includes(lesson.id)}
                     onClick={() => setCurrentLesson(lesson)}
                     onShare={handleShare}
+                    onFavorite={(e) => {
+                       e.stopPropagation();
+                       setProgress(p => {
+                          const fav = p.favoritedLessons || [];
+                          return {
+                             ...p,
+                             favoritedLessons: fav.includes(lesson.id) ? fav.filter(id => id !== lesson.id) : [...fav, lesson.id]
+                          };
+                       });
+                    }}
+                    onDelete={() => {
+                        setProgress(p => ({
+                             ...p,
+                             hiddenLessons: [...(p.hiddenLessons || []), lesson.id]
+                        }));
+                    }}
                   />
                 ))}
               </div>

@@ -12,9 +12,9 @@ export const LESSONS: MicroLesson[] = [
     quiz: {
       question: 'كم أغنام ترى في الصورة؟',
       options: [
-        { id: 'a', text: 'ثلاثة', isCorrect: true },
-        { id: 'b', text: 'خمسة', isCorrect: false },
-        { id: 'c', text: 'واحد', isCorrect: false }
+        { id: 'a', text: 'ثلاثة', isCorrect: true, explanation: 'هناك ثلاثة رؤوس بيضاء في الصورة.' },
+        { id: 'b', text: 'خمسة', isCorrect: false, explanation: 'خمسة رقم كبير جداً لعدد هذه الأغنام.' },
+        { id: 'c', text: 'واحد', isCorrect: false, explanation: 'هناك أكثر من خروف واحد.' }
       ],
       feedbackSuccess: 'ممتاز! أنت شطور فعلاً.',
       feedbackFailure: 'حاول مرة أخرى، أنت تستطيع فعلها!'

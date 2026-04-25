@@ -5,6 +5,7 @@ export interface QuizOption {
   text: string;
   isCorrect: boolean;
   image?: string;
+  explanation?: string;
 }
 
 export interface Quiz {
@@ -36,4 +37,6 @@ export interface UserProgress {
   totalPoints: number;
   quizScores: Record<string, number>;
   badges: string[];
+  favoritedLessons: string[];
+  hiddenLessons: string[];
 }
